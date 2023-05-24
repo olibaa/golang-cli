@@ -16,11 +16,11 @@ type pepper struct {
 }
 
 func main() {
-	// PromptSelect()
+	PromptSelect()
 	PromptCustomSelect()
-	// PromptConfirm()
-	// PromptValidate()
-	// PromptCustomValidate()
+	PromptConfirm()
+	PromptValidate()
+	PromptCustomValidate()
 
 }
 
