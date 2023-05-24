@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os/user"
 	"strconv"
 	"strings"
 
@@ -17,11 +18,13 @@ type pepper struct {
 
 func main() {
 	PromptSelect()
+	PromptSelectAdd()
 	PromptCustomSelect()
-	PromptConfirm()
 	PromptValidate()
+	PromptDefaultValidate()
+	PromptPasswordMaskValidate()
 	PromptCustomValidate()
-
+	PromptConfirm()
 }
 
 func PromptValidate() {
@@ -143,6 +146,8 @@ func PromptCustomSelect() {
 		name := strings.Replace(strings.ToLower(pepper.Name), " ", "", -1)
 		input = strings.Replace(strings.ToLower(input), " ", "", -1)
 
+		fmt.Println(input)
+
 		return strings.Contains(name, input)
 	}
 
@@ -162,4 +167,86 @@ func PromptCustomSelect() {
 	}
 
 	fmt.Printf("You choose number %d: %s\n", i+1, peppers[i].Name)
+}
+
+func PromptDefaultValidate() {
+	validate := func(input string) error {
+		if len(input) < 3 {
+			return errors.New("Username must have more than 3 characters")
+		}
+		return nil
+	}
+
+	var username string
+	u, err := user.Current()
+	if err == nil {
+		username = u.Username
+	}
+
+	prompt := promptui.Prompt{
+		Label:    "Username",
+		Validate: validate,
+		Default:  username,
+	}
+
+	result, err := prompt.Run()
+
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	fmt.Printf("Your username is %q\n", result)
+}
+
+func PromptPasswordMaskValidate() {
+	validate := func(input string) error {
+		if len(input) < 6 {
+			return errors.New("Password must have more than 6 characters")
+		}
+		return nil
+	}
+
+	prompt := promptui.Prompt{
+		Label:    "Password",
+		Validate: validate,
+		Mask:     '*',
+	}
+
+	result, err := prompt.Run()
+
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	fmt.Printf("Your password is %q\n", result)
+}
+
+func PromptSelectAdd() {
+	items := []string{"Vim", "Emacs", "Sublime", "VSCode", "Atom"}
+	index := -1
+	var result string
+	var err error
+
+	for index < 0 {
+		prompt := promptui.SelectWithAdd{
+			Label:    "What's your text editor",
+			Items:    items,
+			AddLabel: "Other",
+		}
+
+		index, result, err = prompt.Run()
+
+		if index == -1 {
+			items = append(items, result)
+		}
+	}
+
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		return
+	}
+
+	fmt.Printf("You choose %s\n", result)
 }
